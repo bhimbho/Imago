@@ -21,6 +21,7 @@ class ImagesTable extends Migration
             $table->string('permission');
             $table->string('size');
             $table->string('image_file');
+            $table->string('user_id');
             $table->timestamps();
         });
     }

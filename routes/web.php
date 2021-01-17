@@ -20,4 +20,9 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::get('/home', 'HomeController@index')->name('home');
-Route::resource('/user_images', 'ImagesController');
+
+Route::group(['middleware' => ['auth']], function () { //ensure users are validated before access
+    Route::resource('/user_images', 'ImagesController');
+    Route::DELETE('/user_images_multiple', 'ImagesController@destroy_multiple')->name('delete_multiple');
+    Route::DELETE('/user_images_delete_all', 'ImagesController@destroy_all')->name('delete_all');
+});

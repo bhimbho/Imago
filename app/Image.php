@@ -12,5 +12,6 @@ class Image extends Model
     'discount',
     'image_file',
     'permission',
+    'user_id',
     'size'];
 }

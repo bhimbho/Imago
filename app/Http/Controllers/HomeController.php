@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Image;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
@@ -23,6 +25,15 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('home');
+        return view('home')
+        ->with('images', Image::where('user_id', Auth::user()->id)->get())
+        ->with('private', Image::where([
+            ['user_id', Auth::user()->id],
+            ['permission',0]
+            ])->get())
+        ->with('public', Image::where([
+            ['user_id', Auth::user()->id],
+            ['permission',1]
+            ])->get());
     }
 }

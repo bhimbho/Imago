@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DeleteRequest;
+use App\Http\Requests\StoreRequest;
 use App\Image;
+use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ImagesController extends Controller
 {
@@ -12,9 +16,13 @@ class ImagesController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+   
+
     public function index()
     {
-        return view('images.index')->with('images', Image::all()); 
+        $user_id = Auth::user()->id;
+        return view('images.index')->
+        with('images', Image::where('user_id', $user_id)->get()); 
     }
 
     /**
@@ -33,17 +41,8 @@ class ImagesController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreRequest $request)
     {
-        // Validation for all fields being received from the view via model
-        $this->validate($request, [
-            'title' => 'required|min:6|unique:images,title',
-            'price' => 'required|numeric',
-            'discount' => 'required|numeric',
-            'image' => 'image|mimes:jpeg,png,jpg',
-            'size' => 'required',
-            'permission' => 'required|numeric'
-        ]);
 
         // store image in public/images
         $image = $request->image->store('public/images');
@@ -55,43 +54,10 @@ class ImagesController extends Controller
             'discount' => $request->discount,
             'image_file' => $image,
             'size' => $request->size,
+            'user_id' => Auth::user()->id,
             'permission' => $request->permission //permission 0 - public 1-private
         ]);
         return redirect(Route('user_images.index'))->with('success', 'Image Upload Accepted');
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
     }
 
     /**
@@ -103,6 +69,28 @@ class ImagesController extends Controller
     public function destroy($id) //using route model binding
     {
         Image::find($id)->delete(); //invoke delete function
-        return redirect(Route('user_images.index')); //redirect to image dash route
+        return redirect(Route('user_images.index'))->with('success', 'Image Deleted'); //redirect to image dash route
+    }
+
+    // Delete Multiple Images
+    public function destroy_multiple(DeleteRequest $request) //using route model binding
+    {
+        
+        $image_ids = $request->image_id;
+
+            foreach($image_ids as $id){
+                Image::find($id)->delete();
+            }
+        return redirect(Route('user_images.index'))->with('success', 'Selection Deleted'); //redirect to image dash route
+    }
+
+    /* Delete All User Related images
+
+    ** */
+    public function destroy_all()
+    {
+        Image::where('user_id', Auth::user()->id)->delete();
+        session()->flash('success', 'Deleted!');
+        return redirect(Route('user_images.index'))->with('success', 'Selection Deleted'); //redirect to image dash route
     }
 }
